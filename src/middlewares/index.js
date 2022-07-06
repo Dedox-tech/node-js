@@ -1,3 +1,6 @@
+const { errorResponse } = require("../utils/responses")
+const boom = require('@hapi/boom')
+
 const method_not_allow = (req, res, next) => 
 {
   console.log('Valindando metodo')
@@ -49,9 +52,28 @@ const validate_data = (req, res, next) => {
   }
 }
 
+function validate_data_Joi(schema, property) {
+  return (req, res, next) => {
+    // property: body, params, query
+    const data = req[property]
+    const {error} = schema.validate(data)
+
+    if(error)
+    {
+      //next(boom.badRequest('Error al validar el request'))
+      errorResponse(req, res, boom.badRequest(error) )
+    }
+    else
+    {
+      next()
+    }
+  }
+}
+
 
 module.exports = {
   method_not_allow,
   validate_permissions,
-  validate_data
+  validate_data,
+  validate_data_Joi
 }

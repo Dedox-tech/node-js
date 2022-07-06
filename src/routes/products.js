@@ -7,45 +7,34 @@ const upload = multer({ dest: 'uploads/', limits: {
 } })
 const productService = new ProductService()
 
-const { method_not_allow, validate_data, validate_permissions } = require('../middlewares')
+const { validate_data_Joi, validate_permissions } = require('../middlewares')
+const { successResponse, errorResponse } = require('../utils/responses');
+const { productSchema } = require('../utils/schemas/product')
 
-router.use('/', method_not_allow)
+//router.use('/', method_not_allow)
 
 router.get('/all', async (req, res) => {
-  const my_products = await productService.getProducts()
   
-  if (my_products.length === 0) 
-  {
-    res.status(404).json({
-      data: []
-    });
-  } 
-  else 
-  {
-    res.status(200).json({
-      data: my_products
-    });
+  try {
+    const my_products = await productService.getProducts()  
+    successResponse(req, res, my_products)
+  } catch (error) {
+    //console.error(`Se produjo un error: ${error.detailedError}`)
+    //errorResponse(req, res, error.message, error.errorCode)
+    errorResponse(req, res, error)
   }
 
 });
 
 router.get('/detail/:id', async (req, res) => {
   const id = parseInt(req.params.id)
-  const my_product_detail = await productService.getProductDetail(id)
 
-  if(id === 1)
-  {
-    res.status(500).json({
-      error: 'Hubo un error en el servidor'
-    })
-  } 
-  else 
-  {
-    res.status(200).json({
-      data: my_product_detail
-    })
+  try {
+    const my_product_detail = await productService.getProductDetail(id)  
+    successResponse(req, res, my_product_detail)
+  } catch (error) {
+    errorResponse(req, res, error)
   }
-  
 })
 
 router.get('/', async (req, res) => {
@@ -61,7 +50,7 @@ router.get('/', async (req, res) => {
 })
 
 
-router.post('/', validate_data, validate_permissions,  async(req, res) => {
+router.post('/', validate_data_Joi(productSchema, 'body'), validate_permissions,  async(req, res) => {
   const new_product = req.body
   const my_products = await productService.saveNewProduct(new_product)
 

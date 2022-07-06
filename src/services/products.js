@@ -1,16 +1,35 @@
-const { products } = require('../data')
+const { products } = require('../data');
+const NotFoundError = require('../utils/errors/notFoundError');
+const boom = require('@hapi/boom')
 
 class ProductService{
   async getProducts()
   {
     const all_products = await Promise.resolve(products)
-    return all_products || [];
+    if(all_products.length === 0)
+    {
+      //throw new NotFoundError('Productos no encontrados', 404, 'Tabla de base de datos vacia')
+      throw boom.notFound('Productos no encontrados')
+    }
+
+    return all_products;
   }
 
   async getProductDetail(id)
   {
     const all_products = await Promise.resolve(products)
-    return all_products.filter(product => product.id === id)
+    const product = all_products.filter(product => product.id === id)[0]
+    if(!product)
+    {
+      throw boom.notFound('Producto no encontrado')
+    }
+
+    if(product.id === 1)
+    {
+      throw boom.forbidden('Recurso no permitido')
+    }
+
+    return product
   }
 
   async getProductByName(name)
